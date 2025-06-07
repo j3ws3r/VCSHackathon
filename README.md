@@ -1,5 +1,5 @@
 
-Installation: 
+Installation
 
 Clone the repository:
 git clone https://github.com/j3ws3r/VCSHackathon.git
