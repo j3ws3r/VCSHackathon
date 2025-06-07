@@ -32,3 +32,5 @@ python-dateutil==2.8.2
 
 # Logging and utilities
 structlog==23.2.0
+jwt
+alembic

@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime, timedelta, timezone
-from app.models.models import User, Item
-from app.schemas.schemas import UserCreate, UserUpdate, ItemCreate, ItemUpdate, UserLogin
+from app.models.users import User
+from app.schemas.schemas import UserCreate, UserUpdate, UserLogin
 from app.api.authentication import (
     PasswordHasher, PasswordValidator, SecurityValidator, 
     AuthError, InvalidCredentialsError, WeakPasswordError, AccountLockedError
@@ -27,7 +27,6 @@ class UserCRUD:
     
     @staticmethod
     def create_user(db: Session, user: UserCreate) -> User:
-        # Validate input data
         username_valid, username_msg = SecurityValidator.validate_username(user.username)
         if not username_valid:
             raise AuthError(username_msg)
@@ -37,15 +36,12 @@ class UserCRUD:
             if not name_valid:
                 raise AuthError(name_msg)
         
-        # Validate password strength
         password_valid, password_msg = PasswordValidator.validate_password(user.password)
         if not password_valid:
             raise WeakPasswordError(password_msg)
         
-        # Hash the password
         password_hash, salt = PasswordHasher.hash_password(user.password)
         
-        # Create user with all fields
         db_user = User(
             username=user.username,
             email=user.email,
@@ -89,21 +85,16 @@ class UserCRUD:
         if not user:
             raise InvalidCredentialsError("Invalid email or password")
         
-        # Check if account is locked
         if SecurityValidator.is_account_locked(user):
             raise AccountLockedError("Account is temporarily locked due to multiple failed login attempts")
         
-        # Check if account is active
         if not user.is_active:
             raise AuthError("Account is inactive")
         
-        # Verify password
         if not PasswordHasher.verify_password(password, user.password_hash, user.salt):
-            # Update failed login attempts
             UserCRUD.update_failed_login_attempt(db, user.id)
             raise InvalidCredentialsError("Invalid email or password")
         
-        # Successful login - reset failed attempts and update last login
         UserCRUD.update_successful_login(db, user.id)
         return user
     
@@ -114,7 +105,6 @@ class UserCRUD:
         if db_user:
             db_user.failed_login_attempts += 1
             
-            # Lock account after 5 failed attempts
             if SecurityValidator.should_lock_account(db_user.failed_login_attempts):
                 db_user.locked_until = datetime.now(timezone.utc) + timedelta(minutes=30)
             
@@ -133,14 +123,12 @@ class UserCRUD:
     @staticmethod
     def update_password(db: Session, user_id: int, new_password: str) -> bool:
         """Update user password with new hash"""
-        # Validate new password
         password_valid, password_msg = PasswordValidator.validate_password(new_password)
         if not password_valid:
             raise WeakPasswordError(password_msg)
         
         db_user = db.query(User).filter(User.id == user_id).first()
         if db_user:
-            # Hash new password
             password_hash, salt = PasswordHasher.hash_password(new_password)
             db_user.password_hash = password_hash
             db_user.salt = salt
@@ -148,43 +136,3 @@ class UserCRUD:
             return True
         return False
 
-class ItemCRUD:
-    @staticmethod
-    def get_item(db: Session, item_id: int) -> Optional[Item]:
-        return db.query(Item).filter(Item.id == item_id).first()
-    
-    @staticmethod
-    def get_items(db: Session, skip: int = 0, limit: int = 100) -> List[Item]:
-        return db.query(Item).offset(skip).limit(limit).all()
-    
-    @staticmethod
-    def get_items_by_user(db: Session, user_id: int, skip: int = 0, limit: int = 100) -> List[Item]:
-        return db.query(Item).filter(Item.user_id == user_id).offset(skip).limit(limit).all()
-    
-    @staticmethod
-    def create_item(db: Session, item: ItemCreate) -> Item:
-        db_item = Item(**item.model_dump())
-        db.add(db_item)
-        db.commit()
-        db.refresh(db_item)
-        return db_item
-    
-    @staticmethod
-    def update_item(db: Session, item_id: int, item_update: ItemUpdate) -> Optional[Item]:
-        db_item = db.query(Item).filter(Item.id == item_id).first()
-        if db_item:
-            update_data = item_update.model_dump(exclude_unset=True)
-            for field, value in update_data.items():
-                setattr(db_item, field, value)
-            db.commit()
-            db.refresh(db_item)
-        return db_item
-    
-    @staticmethod
-    def delete_item(db: Session, item_id: int) -> bool:
-        db_item = db.query(Item).filter(Item.id == item_id).first()
-        if db_item:
-            db.delete(db_item)
-            db.commit()
-            return True
-        return False
