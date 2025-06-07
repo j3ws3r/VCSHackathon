@@ -1,44 +1,56 @@
-from pydantic import BaseModel, EmailStr
-from typing import List, Optional
+from pydantic import BaseModel, EmailStr, Field
+from typing import Optional
 from datetime import datetime
 
 class UserBase(BaseModel):
     username: str
     email: EmailStr
+    full_name: Optional[str] = None
 
 class UserCreate(UserBase):
-    pass
+    password: str = Field(..., min_length=8, description="Password must be at least 8 characters")
+    role: str = "user"
 
 class UserUpdate(BaseModel):
     username: Optional[str] = None
     email: Optional[EmailStr] = None
+    full_name: Optional[str] = None
+    role: Optional[str] = None
+    is_active: Optional[bool] = None
 
 class User(UserBase):
     id: int
+    role: str = "user"
+    is_active: bool = True
+    is_verified: bool = False
+    failed_login_attempts: int = 0
+    locked_until: Optional[datetime] = None
+    last_login: Optional[datetime] = None
     created_at: datetime
-    items: List['Item'] = []
     
     class Config:
         from_attributes = True
 
-class ItemBase(BaseModel):
-    title: str
-    description: Optional[str] = None
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
 
-class ItemCreate(ItemBase):
-    user_id: Optional[int] = None
+class Token(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    expires_in: int
 
-class ItemUpdate(BaseModel):
-    title: Optional[str] = None
-    description: Optional[str] = None
-
-class Item(ItemBase):
+class UserResponse(BaseModel):
     id: int
-    user_id: Optional[int] = None
+    username: str
+    email: EmailStr
+    full_name: Optional[str] = None
+    role: str = "user"
+    is_active: bool = True
+    is_verified: bool = False
+    last_login: Optional[datetime] = None
     created_at: datetime
-    owner: Optional[User] = None
     
     class Config:
         from_attributes = True
-
-User.model_rebuild()
