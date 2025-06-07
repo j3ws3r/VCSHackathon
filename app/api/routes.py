@@ -133,6 +133,11 @@ def login_page(request: Request):
     """Return login.html page"""
     return templates.TemplateResponse("login.html", {"request": request})
 
+@router.get("/auth/achievements", response_class=HTMLResponse)
+def login_page(request: Request):
+    """Return achievements.html page"""
+    return templates.TemplateResponse("achievements.html", {"request": request})
+
 
 @router.post("/users/", response_model=User)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
