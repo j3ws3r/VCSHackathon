@@ -97,3 +97,34 @@
 .complete-btn:hover {
     background-color: #b6e5d2;
 }
+
+.progress-container {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* space between label and bar */
+    margin-bottom: 30px;
+}
+
+.progress-label {
+    font-size: 1.2rem;
+    color: #333;
+    font-weight: bold;
+    font-family: Arial, sans-serif;
+    white-space: nowrap; /* so it stays on 1 line */
+}
+
+.progress-bar {
+    flex: 1; /* take all remaining space */
+    height: 10px;
+    background-color: #ffe8d9;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background-color: #FD7E14;
+    width: 0%; /* controlled via inline style */
+    border-radius: 5px 0 0 5px;
+    transition: width 0.4s ease;
+}
