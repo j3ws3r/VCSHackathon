@@ -6,23 +6,134 @@
     <title>Achievements</title>
 
     <link rel="stylesheet" href="{{ request.url_for('static', path='css/theme.css') if request else '/static/css/theme.css' }}" type="text/css" media="all" />
-
+    <link rel="stylesheet" href="{{ request.url_for('static', path='css/achievements.css') if request else '/static/css/achievements.css' }}" type="text/css" media="all" />
 </head>
 <body>
+    <!-- Header -->
     <div class="header">
-    <div class="header-content">
-        <div class="nav-links">
-            <a href="#" class="active">Home</a>
-            <a href="#">History</a>
-            <a href="#">Create</a>
-        </div>
-        <div class="profile">
-            <div class="profile-circle">K</div> <!-- Example letter K -->
+        <div class="header-content">
+            <div class="nav-links">
+                <a href="#" class="active">Home</a>
+                <a href="#">History</a>
+                <a href="#">Create</a>
+            </div>
+            <div class="profile">
+                <div class="profile-circle">K</div>
+            </div>
         </div>
     </div>
-</div>
-<div class="container">
-    <h1 class="title">Achievements</h1>
-</div>
+
+    <!-- Main container -->
+    <div class="container">
+        <h1 class="title">Achievements</h1>
+
+        <p class="points-info">
+            Congratulations! You already collected:
+            <span class="points-icon">⭐</span>
+            <span class="points-value">237 points</span>
+        </p>
+
+        <!-- Achievements Section -->
+        <div class="achievements-section">
+
+            <h2 class="section-title">Daily</h2>
+            <div class="cards-grid">
+
+                <div class="achievement-card">
+                    <h3>Gratitude journaling</h3>
+                    <p>Encourage user to plan upcoming vacations or rest periods to promote work-life balance and anticipation of positive experiences.</p>
+                    <div class="card-footer">
+                        <span class="time">🕒 15 minutes</span>
+                        <span class="points">⭐ 25 points</span>
+                        <button class="complete-btn">Complete</button>
+                    </div>
+                </div>
+
+                <div class="achievement-card">
+                    <h3>Gratitude journaling</h3>
+                    <p>Encourage user to plan upcoming vacations or rest periods to promote work-life balance and anticipation of positive experiences.</p>
+                    <div class="card-footer">
+                        <span class="time">🕒 15 minutes</span>
+                        <span class="points">⭐ 25 points</span>
+                        <button class="complete-btn">Complete</button>
+                    </div>
+                </div>
+
+                <div class="achievement-card completed">
+                    <h3>Gratitude journaling</h3>
+                    <p>Encourage user to plan upcoming vacations or rest periods to promote work-life balance and anticipation of positive experiences.</p>
+                    <div class="card-footer">
+                        <span class="time">🕒 15 minutes</span>
+                        <span class="points">⭐ 25 points</span>
+                        <button class="complete-btn">Completed</button>
+                    </div>
+                </div>
+
+            </div> <!-- End Daily section -->
+
+
+            <h2 class="section-title">Weekly</h2>
+            <div class="cards-grid">
+
+                <div class="achievement-card">
+                    <h3>Mindfulness meditation</h3>
+                    <p>Suggest 2–5 minutes of mindfulness meditation every 1–2 hours to improve mood and reduce fatigue.</p>
+                    <div class="card-footer">
+                        <span class="time">🕒 15 minutes</span>
+                        <span class="points">⭐ 25 points</span>
+                        <button class="complete-btn">Complete</button>
+                    </div>
+                </div>
+
+                <div class="achievement-card">
+                    <h3>Stretching</h3>
+                    <p>Remind user to stretch for 1–2 minutes every 30–60 minutes to prevent physical discomfort.</p>
+                    <div class="card-footer">
+                        <span class="time">🕒 10 minutes</span>
+                        <span class="points">⭐ 20 points</span>
+                        <button class="complete-btn">Complete</button>
+                    </div>
+                </div>
+
+                <div class="achievement-card completed">
+                    <h3>Physical activity</h3>
+                    <p>Encourage user to perform walking or light physical activity several times per day to combat sedentary behavior.</p>
+                    <div class="card-footer">
+                        <span class="time">🕒 30 minutes</span>
+                        <span class="points">⭐ 40 points</span>
+                        <button class="complete-btn">Completed</button>
+                    </div>
+                </div>
+
+                <div class="achievement-card">
+                    <h3>Social activity</h3>
+                    <p>Encourage user to plan and engage in social activities weekly or monthly to maintain social well-being.</p>
+                    <div class="card-footer">
+                        <span class="time">🕒 45 minutes</span>
+                        <span class="points">⭐ 50 points</span>
+                        <button class="complete-btn">Complete</button>
+                    </div>
+                </div>
+
+            </div> <!-- End Weekly section -->
+
+
+            <!-- Monthly Section -->
+            <h2 class="section-title">Monthly</h2>
+            <div class="cards-grid">
+                <div class="achievement-card">
+                    <h3>Gratitude journaling</h3>
+                    <p>Encourage user to plan upcoming vacations or rest periods to promote work-life balance and anticipation of positive experiences.</p>
+                    <div class="card-footer">
+                        <span class="time">🕒 15 minutes</span>
+                        <span class="points">⭐ 25 points</span>
+                        <button class="complete-btn">Complete</button>
+                    </div>
+                </div>
+            </div>
+
+        </div> <!-- End Achievements Section -->
+
+    </div> <!-- End Main Container -->
 </body>
 </html>

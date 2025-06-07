@@ -24,3 +24,8 @@ def achievements_page(request: Request):
 def dashboard_page(request: Request):
     """Return dashboard page"""
     return templates.TemplateResponse("achievements.html", {"request": request})
+
+@router.get("/history", response_class=HTMLResponse)
+def dashboard_page(request: Request):
+    """Return history page"""
+    return templates.TemplateResponse("history.html", {"request": request})
