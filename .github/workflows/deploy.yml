@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -20,7 +21,7 @@ jobs:
           SSH_HOST: ${{ secrets.SSH_HOST }}
         run: |
           sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST << 'EOF'
-            cd /path/to/your/app
+            cd /root/VCSHackathon
 
             git pull origin main
 
@@ -28,5 +29,5 @@ jobs:
             pip install -r requirements.txt
 
             screen -S fastapi_app -X quit || true
-            screen -dmS fastapi_app uvicorn app.main:app --host 0.0.0.0 --port 8000
+            screen -dmS fastapi_app1 uvicorn app.main:app --host 0.0.0.0 --port 8000
           EOF
