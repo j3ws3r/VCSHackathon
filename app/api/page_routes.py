@@ -10,6 +10,11 @@ def login_page(request: Request):
     """Return login page"""
     return templates.TemplateResponse("login.html", {"request": request})
 
+@router.get("/create", response_class=HTMLResponse)
+def create_page(request: Request):
+    """Return create account page"""
+    return templates.TemplateResponse("create.html", {"request": request})
+
 @router.get("/achievements", response_class=HTMLResponse)
 def achievements_page(request: Request):
     """Return achievements page"""

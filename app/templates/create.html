@@ -247,9 +247,17 @@
         function showMessage(section) {
             alert(`Navigating to ${section} section`);
         }
-
+        
         async function createAchievement(event) {
             event.preventDefault();
+            
+            // Check if user is authenticated
+            const accessToken = localStorage.getItem('access_token');
+            if (!accessToken) {
+                alert('❌ Please login first');
+                window.location.href = '/login';
+                return;
+            }
             
             const formData = new FormData(event.target);
             
@@ -258,29 +266,37 @@
             const originalText = submitBtn.textContent;
             submitBtn.textContent = 'Creating...';
             submitBtn.disabled = true;
-
+            
             try {
-                const response = await fetch('/api/v1/auth/create-achievement', {
+                const response = await fetch('/api/v1/create-achievement', {
                     method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}` // Add this line
+                    },
                     body: formData
                 });
-
+                
                 const result = await response.json();
-
+                
                 if (response.ok) {
                     // Show success message
                     alert(`✅ ${result.message}`);
-                    
                     // Reset form
                     event.target.reset();
-                    
                     // Reset input borders
                     document.querySelectorAll('input, textarea, select').forEach(element => {
                         element.style.borderColor = '#f0f0f0';
                     });
                 } else {
-                    // Show error message
-                    alert(`❌ Error: ${result.detail || 'Failed to create achievement'}`);
+                    // Handle authentication errors
+                    if (response.status === 401 || response.status === 403) {
+                        alert('❌ Session expired. Please login again.');
+                        localStorage.removeItem('access_token');
+                        localStorage.removeItem('refresh_token');
+                        window.location.href = '/login';
+                    } else {
+                        alert(`❌ Error: ${result.detail || 'Failed to create achievement'}`);
+                    }
                 }
             } catch (error) {
                 console.error('Error creating achievement:', error);
@@ -291,8 +307,36 @@
                 submitBtn.disabled = false;
             }
         }
-
-        // Add some interactive feedback
+        
+        // Add authentication check when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is authenticated
+            const accessToken = localStorage.getItem('access_token');
+            if (!accessToken) {
+                alert('Please login first');
+                window.location.href = '/login';
+                return;
+            }
+            
+            // Verify token is still valid
+            fetch('/api/v1/auth/me', {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    // Token is invalid, redirect to login
+                    localStorage.removeItem('access_token');
+                    localStorage.removeItem('refresh_token');
+                    window.location.href = '/login';
+                }
+            })
+            .catch(error => {
+                console.error('Auth check failed:', error);
+            });
+        });
+        
         document.querySelectorAll('input, textarea, select').forEach(element => {
             element.addEventListener('input', function() {
                 if (this.value.trim()) {
@@ -302,6 +346,6 @@
                 }
             });
         });
-    </script>
+        </script>
 </body>
 </html>

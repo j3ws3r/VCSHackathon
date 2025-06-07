@@ -3,7 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from app.core.database import create_tables
 from app.api.routes import router as api_router
-from app.api.page_routes import router as page_router 
+from app.api.page_routes import router as page_router
+from app.api.achievements import router as achievement_router 
 from app.models import User, Achievement
 import os
 import logging
@@ -32,7 +33,9 @@ else:
 
 create_tables()
 
+# Include routers
 app.include_router(api_router, prefix="/api/v1", tags=["api"])
+app.include_router(achievement_router, prefix="/api/v1", tags=["achievements"]) 
 app.include_router(page_router, tags=["pages"])
 
 @app.get("/")
@@ -42,11 +45,6 @@ def read_root():
         "docs": "/docs",
         "redoc": "/redoc"
     }
-
-@app.get("/create")
-def redirect_to_create():
-    from fastapi.responses import RedirectResponse
-    return RedirectResponse(url="/api/v1/auth/create")
 
 @app.get("/health")
 def health_check():
