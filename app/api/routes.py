@@ -11,17 +11,9 @@ from app.api.authentication import (
     JWTManager, AuthError, InvalidCredentialsError, 
     WeakPasswordError, AccountLockedError, ACCESS_TOKEN_EXPIRE_MINUTES
 )
-from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
-from fastapi import Request
-
-
 
 router = APIRouter()
 security = HTTPBearer()
-
-templates = Jinja2Templates(directory="app/templates")
-
 
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
@@ -138,65 +130,10 @@ def login_page(request: Request):
     """Return achievements.html page"""
     return templates.TemplateResponse("achievements.html", {"request": request})
 
-@router.get("/auth/create", response_class=HTMLResponse)
-def create_page(request: Request):
-    """Return create.html page"""
-    return templates.TemplateResponse("create.html", {"request": request})
-
-@router.post("/auth/create-achievement")
-def create_achievement(
-    title: str = Form(...),
-    description: str = Form(...), 
-    category: str = Form(...),
-    duration: str = Form(...),
-    points: int = Form(...),
-    db: Session = Depends(get_db)
-):
-    """Create a new achievement via form submission"""
-    from app.models.achievements import Achievement
-    
-    try:
-        # Convert duration to integer (minutes) based on selection
-        duration_mapping = {
-            "1-day": 1440,      # 24 hours
-            "1-week": 10080,    # 7 days  
-            "1-month": 43200,   # 30 days
-            "3-months": 129600, # 90 days
-            "6-months": 259200, # 180 days
-            "1-year": 525600,   # 365 days
-            "ongoing": 0        # Ongoing
-        }
-        
-        duration_minutes = duration_mapping.get(duration, 0)
-        
-        # Create new achievement
-        new_achievement = Achievement(
-            title=title,
-            description=description,
-            frequency=category,  # Using category as frequency
-            duration=duration_minutes,
-            points_value=points,
-            point_value=points  # Backward compatibility
-        )
-        
-        db.add(new_achievement)
-        db.commit()
-        db.refresh(new_achievement)
-        
-        return {
-            "success": True,
-            "message": f"Achievement '{title}' created successfully!",
-            "achievement_id": new_achievement.id
-        }
-        
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Error creating achievement: {str(e)}"
-        )
 
 @router.post("/users/", response_model=User)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
+    """Create a new user"""
     db_user = UserCRUD.get_user_by_username(db, username=user.username)
     if db_user:
         raise HTTPException(status_code=400, detail="Username already registered")
@@ -209,11 +146,13 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
 
 @router.get("/users/", response_model=List[User])
 def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    """Get list of users"""
     users = UserCRUD.get_users(db, skip=skip, limit=limit)
     return users
 
 @router.get("/users/{user_id}", response_model=User)
 def read_user(user_id: int, db: Session = Depends(get_db)):
+    """Get user by ID"""
     db_user = UserCRUD.get_user(db, user_id=user_id)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
@@ -221,6 +160,7 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
 
 @router.put("/users/{user_id}", response_model=User)
 def update_user(user_id: int, user_update: UserUpdate, db: Session = Depends(get_db)):
+    """Update user information"""
     db_user = UserCRUD.update_user(db, user_id=user_id, user_update=user_update)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
@@ -228,7 +168,146 @@ def update_user(user_id: int, user_update: UserUpdate, db: Session = Depends(get
 
 @router.delete("/users/{user_id}")
 def delete_user(user_id: int, db: Session = Depends(get_db)):
+    """Delete user"""
     success = UserCRUD.delete_user(db, user_id=user_id)
     if not success:
         raise HTTPException(status_code=404, detail="User not found")
     return {"message": "User deleted successfully"}
+
+@router.post("/auth/change-password")
+def change_password(
+    old_password: str,
+    new_password: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Change user password"""
+    try:
+        if not UserCRUD.verify_password(db, current_user.id, old_password):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid current password"
+            )
+        
+        success = UserCRUD.update_password(db, current_user.id, new_password)
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to update password"
+            )
+        
+        return {"message": "Password updated successfully"}
+        
+    except WeakPasswordError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except AuthError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+
+@router.post("/auth/refresh", response_model=Token)
+def refresh_access_token(refresh_token: str, db: Session = Depends(get_db)):
+    """Refresh access token using refresh token"""
+    try:
+        payload = JWTManager.verify_token(refresh_token)
+        
+        if payload.get("type") != "refresh":
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid refresh token"
+            )
+        
+        user_id = payload.get("user_id")
+        if user_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid refresh token"
+            )
+        
+        user = UserCRUD.get_user(db, user_id=user_id)
+        if user is None or not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found or inactive"
+            )
+        
+        new_access_token = JWTManager.create_access_token(
+            data={"user_id": user.id, "email": user.email, "role": user.role}
+        )
+        
+        return {
+            "access_token": new_access_token,
+            "refresh_token": refresh_token, 
+            "token_type": "bearer",
+            "expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60
+        }
+        
+    except AuthError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid refresh token"
+        )
+
+@router.post("/auth/logout")
+def logout_user(current_user: User = Depends(get_current_user)):
+    """Logout user (client should remove tokens)"""
+    # 1. Add the tokens to a blacklist
+    # 2. Remove refresh tokens from database
+    # For now, we rely on client-side token removal!!! IMPORTANT
+    return {"message": "Successfully logged out"}
+
+@router.put("/auth/profile", response_model=UserResponse)
+def update_profile(
+    profile_update: UserUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update current user's profile"""
+    db_user = UserCRUD.update_user(db, user_id=current_user.id, user_update=profile_update)
+    if db_user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return db_user
+
+@router.post("/users/{user_id}/activate")
+def activate_user(
+    user_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Activate user account (admin only)"""
+    # TODO: admin role check
+    db_user = UserCRUD.get_user(db, user_id=user_id)
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    update_data = UserUpdate(is_active=True)
+    updated_user = UserCRUD.update_user(db, user_id=user_id, user_update=update_data)
+    
+    return {"message": f"User {updated_user.username} activated successfully"}
+
+@router.post("/users/{user_id}/deactivate")
+def deactivate_user(
+    user_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Deactivate user account (admin only)"""
+    # TODO: admin role check
+    if user_id == current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot deactivate your own account"
+        )
+    
+    db_user = UserCRUD.get_user(db, user_id=user_id)
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    update_data = UserUpdate(is_active=False)
+    updated_user = UserCRUD.update_user(db, user_id=user_id, user_update=update_data)
+    
+    return {"message": f"User {updated_user.username} deactivated successfully"}
