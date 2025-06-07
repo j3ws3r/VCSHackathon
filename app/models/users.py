@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Boolean
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 from app.core.database import Base
 from datetime import datetime
@@ -7,8 +7,9 @@ class User(Base):
     __tablename__ = 'users'
     
     id = Column(Integer, primary_key=True, autoincrement=True)
-    username = Column(String(50), unique=True, nullable=False)
-    email = Column(String(255), unique=True, nullable=False)
+    customer_id = Column(Integer, ForeignKey('customers.id'), nullable=True) 
+    username = Column(String(50), nullable=False)  
+    email = Column(String(255), nullable=False)    
     password_hash = Column(String(255), nullable=False)
     salt = Column(String(255), nullable=False)
     full_name = Column(String(255), nullable=True)
@@ -20,6 +21,7 @@ class User(Base):
     last_login = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     
+    customer = relationship("Customer", back_populates="users")
     user_achievements = relationship(
         "Achievement",
         secondary="user_achievements",
@@ -27,4 +29,4 @@ class User(Base):
     )
     
     def __repr__(self):
-        return f"<User(id={self.id}, email='{self.email}', username='{self.username}')>"
+        return f"<User(id={self.id}, customer_id={self.customer_id}, email='{self.email}', username='{self.username}')>"

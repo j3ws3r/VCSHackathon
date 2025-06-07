@@ -11,7 +11,6 @@ engine = create_engine(
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Single Base declaration for the entire app - Please do not declare anywhere ELSE
 Base = declarative_base()
 
 def get_db():

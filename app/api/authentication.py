@@ -5,6 +5,9 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any, Tuple
 from enum import Enum
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from sqlalchemy.orm import Session
 
 try:
     from jose import JWTError, jwt
@@ -33,9 +36,14 @@ password_context = CryptContext(
     argon2__parallelism=1,
 )
 
+# Security instance
+security = HTTPBearer()
+
 class UserRole(Enum):
     """User roles for authorization"""
     USER = "user"
+    ADMIN = "admin"
+    MODERATOR = "moderator"
 
 class AuthError(Exception):
     """Base exception for authentication errors"""
@@ -60,8 +68,8 @@ class UserExistsError(AuthError):
 class PasswordValidator:
     """Validates password strength and security requirements"""
 
-    MIN_LENGTH = 6
-    MAX_LENGTH = 6
+    MIN_LENGTH = 8
+    MAX_LENGTH = 64
 
     @staticmethod
     def validate(password: str) -> Tuple[bool, str]:
@@ -72,20 +80,7 @@ class PasswordValidator:
         if not (PasswordValidator.MIN_LENGTH <= len(password) <= PasswordValidator.MAX_LENGTH):
             return False, f"Password must be between {PasswordValidator.MIN_LENGTH} and {PasswordValidator.MAX_LENGTH} characters"
 
-        # Temporarily disabled for testing
-        # if not re.search(r"[A-Z]", password):
-        #     return False, "Password must contain at least one uppercase letter"
 
-        # if not re.search(r"[a-z]", password):
-        #     return False, "Password must contain at least one lowercase letter"
-
-        # if not re.search(r"\d", password):
-        #     return False, "Password must contain at least one digit"
-
-        # if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
-        #     return False, "Password must contain at least one special character"
-
-        # Common pattern checks
         patterns = [
             (r"(.)\1{2,}", "Password contains repeated characters"),
             (r"(012|123|234|345|456|567|678|789|890)", "Password contains sequential numbers"),
@@ -217,7 +212,6 @@ class SecurityValidator:
         """Determine if account should be locked after failed attempts"""
         return failed_attempts >= 5
 
-# For backwards compatibility, create instances
 password_validator = PasswordValidator()
 password_hasher = PasswordHasher()
 jwt_manager = JWTManager()

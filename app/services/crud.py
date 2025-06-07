@@ -1,3 +1,4 @@
+from sqlalchemy import and_
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime, timedelta, timezone
@@ -136,3 +137,117 @@ class UserCRUD:
             return True
         return False
 
+    @staticmethod
+    def create_user_for_customer(db: Session, user: UserCreate, customer_id: int):
+        """Create a user for a specific customer"""
+        from app.models.customer import Customer
+        
+        customer = db.query(Customer).filter(Customer.id == customer_id).first()
+        if not customer:
+            raise ValueError("Customer not found")
+        
+        if not customer.can_add_users:
+            raise ValueError(f"Customer has reached maximum user limit ({customer.max_users})")
+        
+        if not customer.is_active:
+            raise ValueError("Customer account is not active")
+        
+        existing_user = UserCRUD.get_user_by_username_and_customer(db, user.username, customer_id)
+        if existing_user:
+            raise ValueError("Username already exists for this customer")
+        
+        existing_user = UserCRUD.get_user_by_email_and_customer(db, user.email, customer_id)
+        if existing_user:
+            raise ValueError("Email already exists for this customer")
+        
+        is_valid, error_msg = SecurityValidator.validate_username(user.username)
+        if not is_valid:
+            raise ValueError(error_msg)
+        
+        if not SecurityValidator.validate_email(user.email):
+            raise ValueError("Invalid email format")
+        
+        if user.full_name:
+            is_valid, error_msg = SecurityValidator.validate_full_name(user.full_name)
+            if not is_valid:
+                raise ValueError(error_msg)
+        
+        is_valid, error_msg = PasswordValidator.validate(user.password)
+        if not is_valid:
+            raise WeakPasswordError(error_msg)
+        
+        hashed_password, salt = PasswordHasher.hash_password(user.password)
+        
+        db_user = User(
+            customer_id=customer_id,  
+            username=user.username,
+            email=user.email,
+            password_hash=hashed_password,
+            salt=salt,
+            full_name=user.full_name,
+            role=getattr(user, 'role', 'user') 
+        )
+        
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+        return db_user
+
+    @staticmethod
+    def get_user_by_username_and_customer(db: Session, username: str, customer_id: int):
+        """Get user by username within a specific customer"""
+        from app.models import User
+        return db.query(User).filter(
+            and_(User.username == username, User.customer_id == customer_id)
+        ).first()
+
+    @staticmethod
+    def get_user_by_email_and_customer(db: Session, email: str, customer_id: int):
+        """Get user by email within a specific customer"""
+        from app.models import User
+        return db.query(User).filter(
+            and_(User.email == email, User.customer_id == customer_id)
+        ).first()
+
+    @staticmethod
+    def get_users_by_customer(db: Session, customer_id: int, skip: int = 0, limit: int = 100):
+        """Get all users for a specific customer"""
+        from app.models import User
+        return db.query(User).filter(User.customer_id == customer_id).offset(skip).limit(limit).all()
+
+    @staticmethod
+    def authenticate_user_for_customer(db: Session, email: str, password: str, customer_id: int = None):
+        """Authenticate user, optionally within a specific customer context"""
+        if customer_id:
+            user = UserCRUD.get_user_by_email_and_customer(db, email, customer_id)
+        else:
+            user = UserCRUD.get_user_by_email(db, email)
+        
+        if not user:
+            raise InvalidCredentialsError("Invalid email or password")
+        
+        if hasattr(user, 'customer') and user.customer:
+            if not user.customer.is_active:
+                raise AccountLockedError("Customer account is not active")
+            
+            if not user.customer.is_subscription_active:
+                raise AccountLockedError("Customer subscription has expired")
+        
+        if SecurityValidator.is_account_locked(user):
+            raise AccountLockedError("Account is temporarily locked due to failed login attempts")
+        
+        if not PasswordHasher.verify_password(password, user.password_hash, user.salt):
+            user.failed_login_attempts += 1
+            if SecurityValidator.should_lock_account(user.failed_login_attempts):
+                user.locked_until = datetime.now(timezone.utc) + timedelta(minutes=30)
+            db.commit()
+            raise InvalidCredentialsError("Invalid email or password")
+        
+        if user.failed_login_attempts > 0:
+            user.failed_login_attempts = 0
+            user.locked_until = None
+        
+        user.last_login = datetime.now(timezone.utc)
+        db.commit()
+        db.refresh(user)
+        return user

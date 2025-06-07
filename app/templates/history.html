@@ -1,117 +1,225 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>History</title>
+{% extends "base.html" %}
 
-    <link rel="stylesheet" href="{{ request.url_for('static', path='css/theme.css') if request else '/static/css/theme.css' }}" type="text/css" media="all" />
-    <style>
-        .date-range {
-        margin-bottom: 2rem;
-        display: flex;
+{% block title %}History{% endblock %}
+
+{% block extra_styles %}
+.date-range {
+    margin-bottom: 2rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.date-range input {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+}
+
+.date-range label {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.filter-button {
+    background-color: #FD7E14;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s;
+}
+
+.filter-button:hover {
+    background-color: #e56b0f;
+}
+
+.history-entry {
+    background-color: white;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: box-shadow 0.3s ease;
+}
+
+.history-entry:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.entry-date {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 1rem;
+}
+
+.entry-details {
+    display: flex;
+    gap: 2rem;
+    font-size: 0.95rem;
+    color: #FD7E14;
+}
+
+.entry-details span {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.no-history {
+    text-align: center;
+    padding: 2rem;
+    color: #6c757d;
+    font-size: 1.1rem;
+}
+
+.loading {
+    text-align: center;
+    padding: 2rem;
+    color: #6c757d;
+}
+
+@media (max-width: 768px) {
+    .date-range {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .history-entry {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .entry-details {
         gap: 1rem;
-        align-items: center;
-      }
-  
-      .date-range input {
-        padding: 0.5rem 1rem;
-        border-radius: 6px;
-        border: 1px solid #ccc;
-        font-size: 1rem;
-      }
-  
-      .history-entry {
-        background-color: white;
-        padding: 1rem;
-        border-radius: 8px;
-        margin-bottom: 1rem;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-      }
-  
-      .entry-date {
-        font-weight: 600;
-      }
-  
-      .entry-details {
-        display: flex;
-        gap: 2rem;
-        font-size: 0.95rem;
-        color: #ff6600;
-      }
-  
-      .entry-details span {
-        display: flex;
-        align-items: center;
-        gap: 0.3rem;
-      }</style>
-</head>
-<body>
-    <div class="header">
-    <div class="header-content">
-        <div class="nav-links">
-            <a href="#" class="active">Home</a>
-            <a href="#">History</a>
-            <a href="#">Create</a>
-        </div>
-        <div class="profile">
-            <div class="profile-circle">K</div> <!-- Example letter K -->
-        </div>
-    </div>
-</div>
+        flex-wrap: wrap;
+    }
+}
+{% endblock %}
+
+{% block content %}
 <div class="container">
     <h1 class="title">History</h1>
+    
     <div class="date-range">
         <label for="start-date">Start:</label>
         <input type="date" id="start-date" name="start-date">
     
         <label for="end-date">End:</label>
         <input type="date" id="end-date" name="end-date">
-      </div>
+        
+        <button class="filter-button" onclick="filterHistory()">Filter</button>
+        <button class="filter-button" onclick="clearFilter()">Clear</button>
+    </div>
     
-      <!-- Repeat this block for each entry -->
-      <div class="history-entry">
-        <div class="entry-date">2025-06-01</div>
-        <div class="entry-details">
-          <span>✔ Completed: 10</span>
-          <span>⭐ Points earned: 45</span>
-        </div>
-      </div>
-    
-      <div class="history-entry">
-        <div class="entry-date">2025-06-01</div>
-        <div class="entry-details">
-          <span>✔ Completed: 10</span>
-          <span>⭐ Points earned: 45</span>
-        </div>
-      </div>
-    
-      <div class="history-entry">
-        <div class="entry-date">2025-06-01</div>
-        <div class="entry-details">
-          <span>✔ Completed: 10</span>
-          <span>⭐ Points earned: 45</span>
-        </div>
-      </div>
-    
-      <div class="history-entry">
-        <div class="entry-date">2025-06-01</div>
-        <div class="entry-details">
-          <span>✔ Completed: 10</span>
-          <span>⭐ Points earned: 45</span>
-        </div>
-      </div>
-    
-      <div class="history-entry">
-        <div class="entry-date">2025-06-01</div>
-        <div class="entry-details">
-          <span>✔ Completed: 10</span>
-          <span>⭐ Points earned: 45</span>
-        </div>
-      </div>
+    <div id="history-container">
+        <div class="loading">Loading history...</div>
+    </div>
 </div>
-</body>
-</html>
+{% endblock %}
+
+{% block dom_ready %}
+loadHistory();
+setDefaultDates();
+{% endblock %}
+
+{% block scripts %}
+async function loadHistory(startDate = null, endDate = null) {
+    try {
+        let url = '/api/v1/history/';
+        if (startDate && endDate) {
+            url += `?start_date=${startDate}&end_date=${endDate}`;
+        }
+        
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${userToken}`
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            displayHistory(data.history || []);
+        } else {
+            document.getElementById('history-container').innerHTML = '<div class="no-history">Error loading history</div>';
+        }
+    } catch (error) {
+        console.error('Error loading history:', error);
+        document.getElementById('history-container').innerHTML = '<div class="no-history">Error loading history</div>';
+    }
+}
+
+function displayHistory(historyData) {
+    const container = document.getElementById('history-container');
+    
+    if (historyData.length === 0) {
+        container.innerHTML = '<div class="no-history">No history found for the selected period</div>';
+        return;
+    }
+    
+    container.innerHTML = '';
+    
+    historyData.forEach(entry => {
+        const historyEntry = document.createElement('div');
+        historyEntry.className = 'history-entry';
+        
+        historyEntry.innerHTML = `
+            <div class="entry-date">${formatDate(entry.date)}</div>
+            <div class="entry-details">
+                <span>✔ Completed: ${entry.completed_count || 0}</span>
+                <span>⭐ Points earned: ${entry.points_earned || 0}</span>
+            </div>
+        `;
+        
+        container.appendChild(historyEntry);
+    });
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    });
+}
+
+function setDefaultDates() {
+    const today = new Date();
+    const oneMonthAgo = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
+    
+    document.getElementById('end-date').value = today.toISOString().split('T')[0];
+    document.getElementById('start-date').value = oneMonthAgo.toISOString().split('T')[0];
+}
+
+function filterHistory() {
+    const startDate = document.getElementById('start-date').value;
+    const endDate = document.getElementById('end-date').value;
+    
+    if (!startDate || !endDate) {
+        alert('Please select both start and end dates');
+        return;
+    }
+    
+    if (new Date(startDate) > new Date(endDate)) {
+        alert('Start date cannot be later than end date');
+        return;
+    }
+    
+    loadHistory(startDate, endDate);
+}
+
+function clearFilter() {
+    document.getElementById('start-date').value = '';
+    document.getElementById('end-date').value = '';
+    loadHistory();
+}
+{% endblock %}

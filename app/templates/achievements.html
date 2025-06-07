@@ -1,165 +1,138 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Achievements</title>
+{% extends "base.html" %}
 
-    <link rel="stylesheet" href="{{ request.url_for('static', path='css/theme.css') if request else '/static/css/theme.css' }}" type="text/css" media="all" />
-    <link rel="stylesheet" href="{{ request.url_for('static', path='css/achievements.css') if request else '/static/css/achievements.css' }}" type="text/css" media="all" />
-</head>
-<body>
-    <!-- Header -->
-    <div class="header">
-        <div class="header-content">
-            <div class="nav-links">
-                <a href="#" class="active">Home</a>
-                <a href="#">History</a>
-                <a href="#">Create</a>
-            </div>
-            <div class="profile">
-                <div class="profile-circle">K</div>
+{% block title %}Achievements{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ request.url_for('static', path='css/achievements.css') }}" type="text/css" media="all" />
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="title">Achievements</h1>
+
+    <p class="points-info">
+        Congratulations! You already collected:
+        <span class="points-icon">⭐</span>
+        <span class="points-value" id="user-points">237 points</span>
+    </p>
+
+    <div class="achievements-section">
+        <h2 class="section-title">Daily</h2>
+
+        <div class="progress-container">
+            <div class="progress-label">Current progress</div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 60%;"></div>
             </div>
         </div>
-    </div>
 
-    <!-- Main container -->
-    <div class="container">
-        <h1 class="title">Achievements</h1>
+        <div class="cards-grid" id="daily-achievements">
+        </div>
 
-        <p class="points-info">
-            Congratulations! You already collected:
-            <span class="points-icon">⭐</span>
-            <span class="points-value">237 points</span>
-        </p>
-
-        <!-- Achievements Section -->
-        <div class="achievements-section">
-
-            <h2 class="section-title">Daily</h2>
-
-<div class="progress-container">
-    <div class="progress-label">Current progress</div>
-    <div class="progress-bar">
-        <div class="progress-fill" style="width: 60%;"></div>
-    </div>
-</div>
-
-
-            <div class="cards-grid">
-
-                <div class="achievement-card">
-                    <h3>Gratitude journaling</h3>
-                    <p>Encourage user to plan upcoming vacations or rest periods to promote work-life balance and anticipation of positive experiences.</p>
-                    <div class="card-footer">
-                        <span class="time">🕒 15 minutes</span>
-                        <span class="points">⭐ 25 points</span>
-                        <button class="complete-btn">Complete</button>
-                    </div>
-                    
-                </div>
-
-                <div class="achievement-card">
-                    <h3>Gratitude journaling</h3>
-                    <p>Encourage user to plan upcoming vacations or rest periods to promote work-life balance and anticipation of positive experiences.</p>
-                    <div class="card-footer">
-                        <span class="time">🕒 15 minutes</span>
-                        <span class="points">⭐ 25 points</span>
-                        <button class="complete-btn">Complete</button>
-                    </div>
-                </div>
-
-                <div class="achievement-card completed">
-                    <h3>Gratitude journaling</h3>
-                    <p>Encourage user to plan upcoming vacations or rest periods to promote work-life balance and anticipation of positive experiences.</p>
-                    <div class="card-footer">
-                        <span class="time">🕒 15 minutes</span>
-                        <span class="points">⭐ 25 points</span>
-                        <button class="complete-btn">Completed</button>
-                    </div>
-                </div>
-
-            </div> <!-- End Daily section -->
-
-
-            <h2 class="section-title">Weekly</h2>
-            
-<div class="progress-container">
-    <div class="progress-label">Current progress</div>
-    <div class="progress-bar">
-        <div class="progress-fill" style="width: 60%;"></div>
-    </div>
-</div>            
-            
-            <div class="cards-grid">
-
-                <div class="achievement-card">
-                    <h3>Mindfulness meditation</h3>
-                    <p>Suggest 2–5 minutes of mindfulness meditation every 1–2 hours to improve mood and reduce fatigue.</p>
-                    <div class="card-footer">
-                        <span class="time">🕒 15 minutes</span>
-                        <span class="points">⭐ 25 points</span>
-                        <button class="complete-btn">Complete</button>
-                    </div>
-                </div>
-
-                <div class="achievement-card">
-                    <h3>Stretching</h3>
-                    <p>Remind user to stretch for 1–2 minutes every 30–60 minutes to prevent physical discomfort.</p>
-                    <div class="card-footer">
-                        <span class="time">🕒 10 minutes</span>
-                        <span class="points">⭐ 20 points</span>
-                        <button class="complete-btn">Complete</button>
-                    </div>
-                </div>
-
-                <div class="achievement-card completed">
-                    <h3>Physical activity</h3>
-                    <p>Encourage user to perform walking or light physical activity several times per day to combat sedentary behavior.</p>
-                    <div class="card-footer">
-                        <span class="time">🕒 30 minutes</span>
-                        <span class="points">⭐ 40 points</span>
-                        <button class="complete-btn">Completed</button>
-                    </div>
-                </div>
-
-                <div class="achievement-card">
-                    <h3>Social activity</h3>
-                    <p>Encourage user to plan and engage in social activities weekly or monthly to maintain social well-being.</p>
-                    <div class="card-footer">
-                        <span class="time">🕒 45 minutes</span>
-                        <span class="points">⭐ 50 points</span>
-                        <button class="complete-btn">Complete</button>
-                    </div>
-                </div>
-
-            </div> <!-- End Weekly section -->
-
-
-            <!-- Monthly Section -->
-            <h2 class="section-title">Monthly</h2>
-
-<div class="progress-container">
-    <div class="progress-label">Current progress</div>
-    <div class="progress-bar">
-        <div class="progress-fill" style="width: 60%;"></div>
-    </div>
-</div>
-
-            <div class="cards-grid">
-                <div class="achievement-card">
-                    <h3>Gratitude journaling</h3>
-                    <p>Encourage user to plan upcoming vacations or rest periods to promote work-life balance and anticipation of positive experiences.</p>
-                    <div class="card-footer">
-                        <span class="time">🕒 15 minutes</span>
-                        <span class="points">⭐ 25 points</span>
-                        <button class="complete-btn">Complete</button>
-                    </div>
-                </div>
+        <h2 class="section-title">Weekly</h2>
+        
+        <div class="progress-container">
+            <div class="progress-label">Current progress</div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 60%;"></div>
             </div>
+        </div>            
+        
+        <div class="cards-grid" id="weekly-achievements">
+        </div>
 
-        </div> <!-- End Achievements Section -->
+        <h2 class="section-title">Monthly</h2>
 
-    </div> <!-- End Main Container -->
-</body>
-</html>
+        <div class="progress-container">
+            <div class="progress-label">Current progress</div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 60%;"></div>
+            </div>
+        </div>
+
+        <div class="cards-grid" id="monthly-achievements">
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block dom_ready %}
+loadAchievements();
+{% endblock %}
+
+{% block scripts %}
+async function loadAchievements() {
+    try {
+        const response = await fetch('/api/v1/achievements/', {
+            headers: {
+                'Authorization': `Bearer ${userToken}`
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            displayAchievements(data.achievements);
+        }
+    } catch (error) {
+        console.error('Error loading achievements:', error);
+    }
+}
+
+function displayAchievements(achievements) {
+    const dailyContainer = document.getElementById('daily-achievements');
+    const weeklyContainer = document.getElementById('weekly-achievements');
+    const monthlyContainer = document.getElementById('monthly-achievements');
+
+    dailyContainer.innerHTML = '';
+    weeklyContainer.innerHTML = '';
+    monthlyContainer.innerHTML = '';
+
+    achievements.forEach(achievement => {
+        const card = createAchievementCard(achievement);
+        
+        if (achievement.category === 'daily') {
+            dailyContainer.appendChild(card);
+        } else if (achievement.category === 'weekly') {
+            weeklyContainer.appendChild(card);
+        } else if (achievement.category === 'monthly') {
+            monthlyContainer.appendChild(card);
+        }
+    });
+}
+
+function createAchievementCard(achievement) {
+    const card = document.createElement('div');
+    card.className = 'achievement-card';
+    
+    card.innerHTML = `
+        <h3>${achievement.title}</h3>
+        <p>${achievement.description}</p>
+        <div class="card-footer">
+            <span class="time">🕒 ${achievement.duration} minutes</span>
+            <span class="points">⭐ ${achievement.points} points</span>
+            <button class="complete-btn" onclick="completeAchievement(${achievement.id})">Complete</button>
+        </div>
+    `;
+    
+    return card;
+}
+
+async function completeAchievement(achievementId) {
+    try {
+        const response = await fetch(`/api/v1/achievements/${achievementId}/complete`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${userToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            alert('Achievement completed!');
+            loadAchievements();
+        }
+    } catch (error) {
+        console.error('Error completing achievement:', error);
+    }
+}
+{% endblock %}
