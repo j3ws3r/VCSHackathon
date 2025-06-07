@@ -3,6 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from app.core.database import create_tables
 from app.api.routes import router
+from app.api.achievements import router as achievements_router
+from app.services.archievements_import import router as import_router
+
 from app.models import User, Achievement
 import os
 import logging
@@ -36,6 +39,8 @@ create_tables()
 
 # Routers
 app.include_router(router, prefix="/api/v1", tags=["api"])
+app.include_router(achievements_router, prefix="/api/v1/achievements", tags=["achievements"])
+app.include_router(import_router, prefix="/api/v1", tags=["import"])
 
 @app.get("/")
 def read_root():

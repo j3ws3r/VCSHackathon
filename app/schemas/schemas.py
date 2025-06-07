@@ -8,7 +8,7 @@ class UserBase(BaseModel):
     full_name: Optional[str] = None
 
 class UserCreate(UserBase):
-    password: str = Field(..., min_length=8, description="Password must be at least 8 characters")
+    password: str = Field(..., min_length=6, max_length=6, description="Password must be exactly 6 characters")
     role: str = "user"
 
 class UserUpdate(BaseModel):

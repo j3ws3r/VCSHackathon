@@ -27,4 +27,4 @@ python -m app.main
 uvicorn app.main:app --reload
 
 # Method 3: Using uvicorn with custom host/port
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload 
