@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.database import create_tables
 from app.api.routes import router
+from app.api.achievements import router as achievements_router
+from app.services.archievements_import import router as import_router
 
 from app.models import User, Achievement
 
@@ -23,6 +25,8 @@ app.add_middleware(
 create_tables()
 
 app.include_router(router, prefix="/api/v1", tags=["api"])
+app.include_router(achievements_router, prefix="/api/v1/achievements", tags=["achievements"])
+app.include_router(import_router, prefix="/api/v1", tags=["import"])
 
 @app.get("/")
 def read_root():

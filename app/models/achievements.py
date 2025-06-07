@@ -18,7 +18,9 @@ class Achievement(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(255), nullable=False)
-    point_value = Column(Integer, nullable=False)
+    description = Column(String, nullable=True)  # Added missing description field
+    point_value = Column(Integer, nullable=True)  # Keep old column for backward compatibility
+    points_value = Column(Integer, nullable=False)  # New column name
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     duration = Column(Integer, nullable=False) 
     frequency = Column(String(50), nullable=False)
