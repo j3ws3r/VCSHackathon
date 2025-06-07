@@ -151,10 +151,11 @@ class JWTManager:
         return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
     @staticmethod
-    def create_refresh_token(data: dict) -> str:
-        """Create JWT refresh token"""
+    def create_refresh_token(data: dict, remember_me: bool = False) -> str:
+        """Create JWT refresh token with optional long-lived session"""
+        expire_days = 30 if remember_me else REFRESH_TOKEN_EXPIRE_DAYS
         to_encode = data.copy()
-        expire = datetime.now(timezone.utc) + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+        expire = datetime.now(timezone.utc) + timedelta(days=expire_days)
         to_encode.update({
             "exp": expire,
             "iat": datetime.now(timezone.utc),

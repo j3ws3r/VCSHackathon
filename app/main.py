@@ -1,11 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from app.core.database import create_tables
 from app.api.routes import router
 from app.api.achievements import router as achievements_router
 from app.services.archievements_import import router as import_router
 
 from app.models import User, Achievement
+import os
+import logging
+
+logger = logging.getLogger("uvicorn.error")
 
 app = FastAPI(
     title="Mental Health FastAPI App",
@@ -21,9 +26,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Create tables after all models are imported!!!!
+# Serve static files if directory exists
+STATIC_DIR = "app/static"  # or "static" if static is in root
+
+if os.path.exists(STATIC_DIR):
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+else:
+    logger.warning(f"Static directory '{STATIC_DIR}' not found. Static files will not be served.")
+
+# Create tables after all models are imported!
 create_tables()
 
+# Routers
 app.include_router(router, prefix="/api/v1", tags=["api"])
 app.include_router(achievements_router, prefix="/api/v1/achievements", tags=["achievements"])
 app.include_router(import_router, prefix="/api/v1", tags=["import"])
