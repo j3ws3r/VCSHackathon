@@ -1,17 +1,13 @@
-"""
-Admin-only routes: user activation/deactivation, role management, system administration, achievements management
-"""
-
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, BackgroundTasks, Form
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any
 import shutil
 import os
 import tempfile
+import traceback
 from datetime import datetime
 
 from app.core.database import get_db, SessionLocal
-
 from app.schemas.schemas import User, UserUpdate
 from app.services.crud import UserCRUD 
 from app.services.goal_crud import GoalCRUD
@@ -20,16 +16,7 @@ from app.api.dependencies import (
     require_role, get_query_params, CommonQueryParams
 )
 from app.api.authentication import UserRole
-
-try:
-    from app.services.archievements_import import parse_excel, bulk_insert_achievements
-    from app.models.achievements import Achievement
-    from app.schemas.achievements import AchievementCreate, AchievementResponse
-except ImportError:
-    print("Warning: Achievement modules not found. Some admin features may not work.")
-    Achievement = None
-    parse_excel = None
-    bulk_insert_achievements = None
+from app.models.achievements import Achievement
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
@@ -38,7 +25,6 @@ def assign_daily_goals_all(
     db: Session = Depends(get_db),
     current_user = Depends(get_current_admin_user)
 ):
-    """Manually triggers the assignment of daily goals to all active users."""
     try:
         result = GoalCRUD.assign_daily_goals(db)
         return {
@@ -53,7 +39,6 @@ def assign_weekly_goals_all(
     db: Session = Depends(get_db),
     current_user = Depends(get_current_admin_user)
 ):
-    """Manually triggers the assignment of weekly goals to all active users."""
     try:
         result = GoalCRUD.assign_weekly_goals(db)
         return {
@@ -68,7 +53,6 @@ def assign_monthly_goals_all(
     db: Session = Depends(get_db),
     current_user = Depends(get_current_admin_user)
 ):
-    """Manually triggers the assignment of monthly goals to all active users."""
     try:
         result = GoalCRUD.assign_monthly_goals(db)
         return {
@@ -84,7 +68,6 @@ def reassign_goals_for_user(
     db: Session = Depends(get_db),
     current_user = Depends(get_current_admin_user)
 ):
-    """Clears and re-assigns all daily, weekly, and monthly goals for a specific user."""
     db_user = UserCRUD.get_user(db, user_id=user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -104,7 +87,6 @@ def activate_user(
     current_user = Depends(get_current_admin_user),
     db: Session = Depends(get_db)
 ):
-    """Activate user account (Admin/Moderator only)"""
     db_user = UserCRUD.get_user(db, user_id=user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -123,7 +105,6 @@ def deactivate_user(
     current_user = Depends(get_current_admin_user),
     db: Session = Depends(get_db)
 ):
-    """Deactivate user account (Admin/Moderator only)"""
     if user_id == current_user.id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -148,7 +129,6 @@ def promote_user_to_moderator(
     current_user = Depends(get_current_super_admin_user),
     db: Session = Depends(get_db)
 ):
-    """Promote user to moderator role (Super Admin only)"""
     db_user = UserCRUD.get_user(db, user_id=user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -173,7 +153,6 @@ def demote_user_to_regular(
     current_user = Depends(get_current_super_admin_user),
     db: Session = Depends(get_db)
 ):
-    """Demote user to regular user role (Super Admin only)"""
     if user_id == current_user.id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -204,7 +183,6 @@ def unlock_user_account(
     current_user = Depends(get_current_admin_user),
     db: Session = Depends(get_db)
 ):
-    """Unlock user account that was locked due to failed login attempts"""
     db_user = UserCRUD.get_user(db, user_id=user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -223,53 +201,42 @@ def get_locked_users(
     current_user = Depends(get_current_admin_user),
     db: Session = Depends(get_db)
 ):
-    """Get list of locked user accounts"""
-
     return {"message": "Feature coming soon", "locked_users": []}
 
 @router.post("/achievements/upload")
 async def upload_achievements_excel(
-    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
+    db: Session = Depends(get_db),
     current_user: User = Depends(get_current_admin_user)
 ):
-    """Upload Excel file with achievements (Admin only)"""
+    from app.services.archievements_import import parse_excel_from_memory, bulk_insert_achievements
+
     if not file.filename.endswith(('.xlsx', '.xls')):
-        raise HTTPException(status_code=400, detail="Invalid file type. Please upload .xlsx or .xls files only")
-    
-    if parse_excel is None or bulk_insert_achievements is None:
-        raise HTTPException(status_code=500, detail="Achievement import functionality not available")
-    
-    temp_dir = tempfile.gettempdir()
-    file_path = os.path.join(temp_dir, f"{datetime.utcnow().timestamp()}_{file.filename}")
-    
+        raise HTTPException(status_code=400, detail="Invalid file type. Please upload an Excel file.")
+
     try:
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-        
-        background_tasks.add_task(process_achievements_file, file_path, current_user.username)
+        data = parse_excel_from_memory(file.file)
+        result = bulk_insert_achievements(data, db)
         
         return {
-            "message": "File is being processed in the background. Results will be logged in the console.",
+            "message": "Achievements processed successfully.",
             "filename": file.filename,
+            "created": result.get("created", 0),
+            "skipped": result.get("skipped", 0)
         }
-        
     except Exception as e:
-        if os.path.exists(file_path):
-            os.remove(file_path)
-        raise HTTPException(status_code=500, detail=f"Failed to save uploaded file: {str(e)}")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Failed to process file: {str(e)}")
 
 @router.post("/achievements/preview")
 async def preview_achievements_excel(
     file: UploadFile = File(...),
     current_user = Depends(get_current_admin_user)
 ):
-    """Preview Excel file contents before uploading (Admin only)"""
+    from app.services.archievements_import import parse_excel
+    
     if not file.filename.endswith(('.xlsx', '.xls')):
         raise HTTPException(status_code=400, detail="Invalid file type")
-    
-    if parse_excel is None:
-        raise HTTPException(status_code=500, detail="Achievement preview functionality not available")
     
     temp_dir = tempfile.gettempdir()
     file_path = os.path.join(temp_dir, f"preview_{current_user.id}_{file.filename}")
@@ -286,8 +253,8 @@ async def preview_achievements_excel(
             "previewed_by": current_user.username,
             "preview_time": datetime.utcnow().isoformat()
         }
-        
     except Exception as e:
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Failed to parse file: {str(e)}")
     finally:
         if os.path.exists(file_path):
@@ -303,10 +270,6 @@ async def create_achievement(
     db: Session = Depends(get_db),
     current_user = Depends(get_current_admin_user)
 ):
-    """Create a new achievement manually (Admin only)"""
-    if Achievement is None:
-        raise HTTPException(status_code=500, detail="Achievement functionality not available")
-    
     try:
         duration_minutes = convert_duration_to_minutes(duration)
         
@@ -333,7 +296,6 @@ async def create_achievement(
             "message": f"Achievement '{title}' created successfully!",
             "created_by": current_user.username
         }
-        
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to create achievement: {str(e)}")
@@ -344,10 +306,6 @@ async def delete_achievement(
     current_user = Depends(get_current_admin_user),
     db: Session = Depends(get_db)
 ):
-    """Delete an achievement (Admin only)"""
-    if Achievement is None:
-        raise HTTPException(status_code=500, detail="Achievement functionality not available")
-    
     try:
         achievement = db.query(Achievement).filter(Achievement.id == achievement_id).first()
         if not achievement:
@@ -362,7 +320,6 @@ async def delete_achievement(
             "deleted_by": current_user.username,
             "deleted_at": datetime.utcnow().isoformat()
         }
-        
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to delete achievement: {str(e)}")
@@ -372,7 +329,6 @@ def get_admin_stats(
     current_user = Depends(get_current_admin_user),
     db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
-    """Get admin dashboard statistics"""
     try:
         total_users = len(UserCRUD.get_users_by_customer(db, current_user.customer_id, limit=1000))
         active_users = len([u for u in UserCRUD.get_users_by_customer(db, current_user.customer_id, limit=1000) if u.is_active])
@@ -382,19 +338,17 @@ def get_admin_stats(
         moderator_count = len([u for u in customer_users if u.role == "moderator"])
         regular_count = len([u for u in customer_users if u.role == "user"])
         
-        achievement_stats = {}
-        if Achievement is not None:
-            total_achievements = db.query(Achievement).count()
-            daily_achievements = db.query(Achievement).filter(Achievement.frequency == "daily").count()
-            weekly_achievements = db.query(Achievement).filter(Achievement.frequency == "weekly").count()
-            monthly_achievements = db.query(Achievement).filter(Achievement.frequency == "monthly").count()
-            
-            achievement_stats = {
-                "total_achievements": total_achievements,
-                "daily_achievements": daily_achievements,
-                "weekly_achievements": weekly_achievements,
-                "monthly_achievements": monthly_achievements
-            }
+        total_achievements = db.query(Achievement).count()
+        daily_achievements = db.query(Achievement).filter(Achievement.frequency == "daily").count()
+        weekly_achievements = db.query(Achievement).filter(Achievement.frequency == "weekly").count()
+        monthly_achievements = db.query(Achievement).filter(Achievement.frequency == "monthly").count()
+        
+        achievement_stats = {
+            "total_achievements": total_achievements,
+            "daily_achievements": daily_achievements,
+            "weekly_achievements": weekly_achievements,
+            "monthly_achievements": monthly_achievements
+        }
         
         return {
             "customer_id": current_user.customer_id,
@@ -422,7 +376,6 @@ def search_users(
     current_user = Depends(get_current_admin_user),
     db: Session = Depends(get_db)
 ):
-    """Advanced user search for admins"""
     if len(q.strip()) < 2:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -452,7 +405,6 @@ def search_users(
     }
 
 def convert_duration_to_minutes(duration_str: str) -> int:
-    """Convert duration string to minutes"""
     duration_map = {
         "1-day": 1440,
         "1-week": 10080,
@@ -466,9 +418,6 @@ def convert_duration_to_minutes(duration_str: str) -> int:
 
 
 def process_achievements_file(file_path: str, admin_username: str):
-    """
-    This function runs in the background and creates its own DB session.
-    """
     db: Session = SessionLocal() 
     try:
         from app.services.archievements_import import parse_excel, bulk_insert_achievements
