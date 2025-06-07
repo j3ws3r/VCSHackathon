@@ -5,14 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Sign In</title>
 
-
-
-
-
-<link rel="stylesheet" href="{{ request.url_for('static', path='css/theme.css') if request else '/static/css/theme.css' }}" type="text/css" media="all" />
+    <link rel="stylesheet" href="{{ request.url_for('static', path='css/theme.css') if request else '/static/css/theme.css' }}" type="text/css" media="all" />
 
 </head>
 <body>
-    <button type="button" class="btn btn-primary">Primary</button>
+    <div class="header">
+    <div class="header-content">
+        <div class="nav-links">
+            <a href="#" class="active">Home</a>
+            <a href="#">History</a>
+            <a href="#">Create</a>
+        </div>
+        <div class="profile">
+            <div class="profile-circle">K</div> <!-- Example letter K -->
+        </div>
+    </div>
+</div>
+
+
 </body>
 </html>
