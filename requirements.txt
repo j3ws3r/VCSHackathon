@@ -32,6 +32,15 @@ python-dateutil==2.8.2
 
 # Logging and utilities
 structlog==23.2.0
-jwt
-alembic
-jinja2
+
+# JWT (proper package)
+PyJWT==2.8.0
+
+# Database migrations
+alembic==1.13.1
+
+# Template engine
+jinja2==3.1.2
+
+# Excel file processing
+openpyxl==3.1.2
