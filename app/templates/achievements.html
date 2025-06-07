@@ -1,27 +1,138 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Sign In</title>
+{% extends "base.html" %}
 
-    <link rel="stylesheet" href="{{ request.url_for('static', path='css/theme.css') if request else '/static/css/theme.css' }}" type="text/css" media="all" />
+{% block title %}Achievements{% endblock %}
 
-</head>
-<body>
-    <div class="header">
-    <div class="header-content">
-        <div class="nav-links">
-            <a href="#" class="active">Home</a>
-            <a href="#">History</a>
-            <a href="#">Create</a>
+{% block extra_css %}
+<link rel="stylesheet" href="{{ request.url_for('static', path='css/achievements.css') }}" type="text/css" media="all" />
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="title">Achievements</h1>
+
+    <p class="points-info">
+        Congratulations! You already collected:
+        <span class="points-icon">⭐</span>
+        <span class="points-value" id="user-points">237 points</span>
+    </p>
+
+    <div class="achievements-section">
+        <h2 class="section-title">Daily</h2>
+
+        <div class="progress-container">
+            <div class="progress-label">Current progress</div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 60%;"></div>
+            </div>
         </div>
-        <div class="profile">
-            <div class="profile-circle">K</div> <!-- Example letter K -->
+
+        <div class="cards-grid" id="daily-achievements">
+        </div>
+
+        <h2 class="section-title">Weekly</h2>
+        
+        <div class="progress-container">
+            <div class="progress-label">Current progress</div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 60%;"></div>
+            </div>
+        </div>            
+        
+        <div class="cards-grid" id="weekly-achievements">
+        </div>
+
+        <h2 class="section-title">Monthly</h2>
+
+        <div class="progress-container">
+            <div class="progress-label">Current progress</div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 60%;"></div>
+            </div>
+        </div>
+
+        <div class="cards-grid" id="monthly-achievements">
         </div>
     </div>
 </div>
+{% endblock %}
 
+{% block dom_ready %}
+loadAchievements();
+{% endblock %}
 
-</body>
-</html>
+{% block scripts %}
+async function loadAchievements() {
+    try {
+        const response = await fetch('/api/v1/achievements/', {
+            headers: {
+                'Authorization': `Bearer ${userToken}`
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            displayAchievements(data.achievements);
+        }
+    } catch (error) {
+        console.error('Error loading achievements:', error);
+    }
+}
+
+function displayAchievements(achievements) {
+    const dailyContainer = document.getElementById('daily-achievements');
+    const weeklyContainer = document.getElementById('weekly-achievements');
+    const monthlyContainer = document.getElementById('monthly-achievements');
+
+    dailyContainer.innerHTML = '';
+    weeklyContainer.innerHTML = '';
+    monthlyContainer.innerHTML = '';
+
+    achievements.forEach(achievement => {
+        const card = createAchievementCard(achievement);
+        
+        if (achievement.category === 'daily') {
+            dailyContainer.appendChild(card);
+        } else if (achievement.category === 'weekly') {
+            weeklyContainer.appendChild(card);
+        } else if (achievement.category === 'monthly') {
+            monthlyContainer.appendChild(card);
+        }
+    });
+}
+
+function createAchievementCard(achievement) {
+    const card = document.createElement('div');
+    card.className = 'achievement-card';
+    
+    card.innerHTML = `
+        <h3>${achievement.title}</h3>
+        <p>${achievement.description}</p>
+        <div class="card-footer">
+            <span class="time">🕒 ${achievement.duration} minutes</span>
+            <span class="points">⭐ ${achievement.points} points</span>
+            <button class="complete-btn" onclick="completeAchievement(${achievement.id})">Complete</button>
+        </div>
+    `;
+    
+    return card;
+}
+
+async function completeAchievement(achievementId) {
+    try {
+        const response = await fetch(`/api/v1/achievements/${achievementId}/complete`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${userToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            alert('Achievement completed!');
+            loadAchievements();
+        }
+    } catch (error) {
+        console.error('Error completing achievement:', error);
+    }
+}
+{% endblock %}

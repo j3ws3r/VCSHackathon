@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>{% block title %}{{ title or 'Dashboard' }}{% endblock %}</title>
+
+    <link rel="stylesheet" href="{{ request.url_for('static', path='css/theme.css') }}" type="text/css" media="all" />
+    {% block extra_css %}{% endblock %}
+    
+    <style>
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: #f9f9f9;
+            min-width: 200px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            border-radius: 8px;
+            z-index: 1;
+            top: 100%;
+            margin-top: 5px;
+        }
+        
+        .dropdown-content.show {
+            display: block;
+        }
+        
+        .dropdown-content a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            border-radius: 8px;
+        }
+        
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+        
+        .profile-circle {
+            cursor: pointer;
+            background-color: #FD7E14;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        {% block extra_styles %}{% endblock %}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="nav-links">
+                <a href="/dashboard" {% if request.url.path == '/dashboard' %}class="active"{% endif %}>Dashboard</a>
+                <a href="/history" {% if request.url.path == '/history' %}class="active"{% endif %}>History</a>
+                <a href="/achievements" {% if request.url.path == '/achievements' %}class="active"{% endif %}>Achievements</a>
+                <a href="/admin" {% if request.url.path == '/admin' %}class="active"{% endif %} id="admin-nav-link" style="display: none;">Admin Panel</a>
+            </div>
+            <div class="profile dropdown">
+                <div class="profile-circle" onclick="toggleDropdown(event)">U</div>
+                <div class="dropdown-content" id="profile-dropdown">
+                    <a href="#" onclick="viewProfile()">My Profile</a>
+                    <a href="#" onclick="changePassword()">Change Password</a>
+                    <div id="admin-section" style="display: none;">
+                        <hr style="margin: 8px 0; border: 1px solid #eee;">
+                        <a href="/admin">Admin Panel</a>
+                        <a href="#" onclick="manageUsers()">Manage Users</a>
+                    </div>
+                    <hr style="margin: 8px 0; border: 1px solid #eee;">
+                    <a href="#" onclick="logout()">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% block content %}{% endblock %}
+
+    <script>
+        let currentUser = null;
+        let userToken = null;
+
+        window.addEventListener('DOMContentLoaded', function() {
+            loadUserData();
+            
+            document.addEventListener('click', function(event) {
+                const dropdown = document.getElementById('profile-dropdown');
+                const profileCircle = document.querySelector('.profile-circle');
+                
+                if (!profileCircle.contains(event.target) && !dropdown.contains(event.target)) {
+                    dropdown.classList.remove('show');
+                }
+            });
+            
+            {% block dom_ready %}{% endblock %}
+        });
+
+        function toggleDropdown(event) {
+            event.stopPropagation();
+            const dropdown = document.getElementById('profile-dropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        async function loadUserData() {
+            try {
+                userToken = localStorage.getItem('access_token');
+                if (!userToken) {
+                    window.location.href = '/login';
+                    return;
+                }
+
+                const response = await fetch('/api/v1/auth/me', {
+                    headers: {
+                        'Authorization': `Bearer ${userToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    currentUser = await response.json();
+                    
+                    const profileCircle = document.querySelector('.profile-circle');
+                    profileCircle.textContent = currentUser.full_name ? currentUser.full_name[0].toUpperCase() : currentUser.username[0].toUpperCase();
+                    
+                    if (currentUser.role === 'admin') {
+                        const adminSection = document.getElementById('admin-section');
+                        const adminNavLink = document.getElementById('admin-nav-link');
+                        if (adminSection) {
+                            adminSection.style.display = 'block';
+                        }
+                        if (adminNavLink) {
+                            adminNavLink.style.display = 'block';
+                        }
+                    }
+                } else {
+                    console.error('Failed to load user data');
+                    window.location.href = '/login';
+                }
+            } catch (error) {
+                console.error('Error loading user data:', error);
+                window.location.href = '/login';
+            }
+        }
+
+        function viewProfile() {
+            alert('Profile page - Coming soon!');
+        }
+
+        function changePassword() {
+            alert('Change password - Coming soon!');
+        }
+
+        function uploadAchievements() {
+            if (currentUser && currentUser.role !== 'admin') {
+                alert('Access denied');
+                return;
+            }
+            window.location.href = '/admin';
+        }
+
+        function manageUsers() {
+            if (currentUser && currentUser.role !== 'admin') {
+                alert('Access denied');
+                return;
+            }
+            window.location.href = '/admin';
+        }
+
+        function logout() {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            window.location.href = '/login';
+        }
+
+        {% block scripts %}{% endblock %}
+    </script>
+</body>
+</html>

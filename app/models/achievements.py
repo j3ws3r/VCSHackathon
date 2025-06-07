@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, Table, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from app.core.database import Base 
+from app.core.database import Base
 
 user_achievements = Table(
     "user_achievements",
@@ -18,13 +18,12 @@ class Achievement(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(255), nullable=False)
-    description = Column(String, nullable=True)  # Added missing description field
-    point_value = Column(Integer, nullable=True)  # Keep old column for backward compatibility
-    points_value = Column(Integer, nullable=False)  # New column name
+    description = Column(String, nullable=True)
+    point_value = Column(Integer, nullable=False, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    duration = Column(Integer, nullable=False) 
+    duration = Column(Integer, nullable=False)
     frequency = Column(String(50), nullable=False)
-
+    
     users = relationship(
         "User",
         secondary="user_achievements",

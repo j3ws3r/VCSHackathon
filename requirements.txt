@@ -44,3 +44,4 @@ jinja2==3.1.2
 
 # Excel file processing
 openpyxl==3.1.2
+apscheduler
