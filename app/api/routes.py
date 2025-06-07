@@ -11,9 +11,17 @@ from app.api.authentication import (
     JWTManager, AuthError, InvalidCredentialsError, 
     WeakPasswordError, AccountLockedError, ACCESS_TOKEN_EXPIRE_MINUTES
 )
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
+from fastapi import Request
+
+
 
 router = APIRouter()
 security = HTTPBearer()
+
+templates = Jinja2Templates(directory="app/templates")
+
 
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
@@ -119,6 +127,12 @@ def login_user(user_credentials: UserLogin, db: Session = Depends(get_db)):
 def get_current_user_profile(current_user: User = Depends(get_current_user)):
     """Get current user profile"""
     return current_user
+
+@router.get("/auth/login-page", response_class=HTMLResponse)
+def login_page(request: Request):
+    """Return login.html page"""
+    return templates.TemplateResponse("login.html", {"request": request})
+
 
 @router.post("/users/", response_model=User)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
