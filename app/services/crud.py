@@ -1,17 +1,12 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
-<<<<<<< HEAD
-from app.models.models import User, Item
-from app.schemas.schemas import UserCreate, UserUpdate, ItemCreate, ItemUpdate
-=======
 from datetime import datetime, timedelta, timezone
 from app.models.models import User, Item
 from app.schemas.schemas import UserCreate, UserUpdate, ItemCreate, ItemUpdate, UserLogin
-from app.core.auth import (
+from app.api.authentication import (
     PasswordHasher, PasswordValidator, SecurityValidator, 
     AuthError, InvalidCredentialsError, WeakPasswordError, AccountLockedError
 )
->>>>>>> fa20ba1 (Authenification file created, depentancies updated)
 
 class UserCRUD:
     @staticmethod
@@ -32,9 +27,6 @@ class UserCRUD:
     
     @staticmethod
     def create_user(db: Session, user: UserCreate) -> User:
-<<<<<<< HEAD
-        db_user = User(username=user.username, email=user.email)
-=======
         # Validate input data
         username_valid, username_msg = SecurityValidator.validate_username(user.username)
         if not username_valid:
@@ -65,7 +57,6 @@ class UserCRUD:
             is_verified=False,
             failed_login_attempts=0
         )
->>>>>>> fa20ba1 (Authenification file created, depentancies updated)
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
@@ -90,8 +81,6 @@ class UserCRUD:
             db.commit()
             return True
         return False
-<<<<<<< HEAD
-=======
     
     @staticmethod
     def authenticate_user(db: Session, email: str, password: str) -> User:
@@ -158,7 +147,6 @@ class UserCRUD:
             db.commit()
             return True
         return False
->>>>>>> fa20ba1 (Authenification file created, depentancies updated)
 
 class ItemCRUD:
     @staticmethod

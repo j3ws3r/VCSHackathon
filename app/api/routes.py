@@ -1,14 +1,4 @@
-<<<<<<< HEAD
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from typing import List
-from app.core.database import get_db
-from app.schemas.schemas import User, UserCreate, UserUpdate, Item, ItemCreate, ItemUpdate
-from app.services.crud import UserCRUD, ItemCRUD
 
-router = APIRouter()
-
-=======
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
@@ -20,7 +10,7 @@ from app.schemas.schemas import (
     Item, ItemCreate, ItemUpdate
 )
 from app.services.crud import UserCRUD, ItemCRUD
-from app.core.auth import (
+from app.api.authentication import (
     JWTManager, AuthError, InvalidCredentialsError, 
     WeakPasswordError, AccountLockedError, ACCESS_TOKEN_EXPIRE_MINUTES
 )
@@ -140,7 +130,6 @@ def get_current_user_profile(current_user: User = Depends(get_current_user)):
     return current_user
 
 # Updated user management endpoints (now protected)
->>>>>>> fa20ba1 (Authenification file created, depentancies updated)
 @router.post("/users/", response_model=User)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
     db_user = UserCRUD.get_user_by_username(db, username=user.username)
