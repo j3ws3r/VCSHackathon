@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Form
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from typing import List
@@ -119,6 +119,7 @@ def login_user(user_credentials: UserLogin, db: Session = Depends(get_db)):
 def get_current_user_profile(current_user: User = Depends(get_current_user)):
     """Get current user profile"""
     return current_user
+
 
 @router.post("/users/", response_model=User)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):

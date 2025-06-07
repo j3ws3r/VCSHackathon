@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>History</title>
+
+    <link rel="stylesheet" href="{{ request.url_for('static', path='css/theme.css') if request else '/static/css/theme.css' }}" type="text/css" media="all" />
+    <style>.dropdown {
+        margin-bottom: 2rem;
+      }
+  
+      .dropdown select {
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        font-size: 1rem;
+      }
+  
+      .history-entry {
+        background-color: white;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+  
+      .entry-date {
+        font-weight: 600;
+      }
+  
+      .entry-details {
+        display: flex;
+        gap: 2rem;
+        font-size: 0.95rem;
+        color: #ff6600;
+      }
+  
+      .entry-details span {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+      }</style>
+</head>
+<body>
+    <div class="header">
+    <div class="header-content">
+        <div class="nav-links">
+            <a href="#" class="active">Home</a>
+            <a href="#">History</a>
+            <a href="#">Create</a>
+        </div>
+        <div class="profile">
+            <div class="profile-circle">K</div> <!-- Example letter K -->
+        </div>
+    </div>
+</div>
+<div class="container">
+    <h1 class="title">Achievements</h1>
+    <div class="dropdown">
+        <select>
+          <option>Dropdown</option>
+          <!-- Add more options if needed -->
+        </select>
+      </div>
+    
+      <!-- Repeat this block for each entry -->
+      <div class="history-entry">
+        <div class="entry-date">2025-06-01</div>
+        <div class="entry-details">
+          <span>✔ Completed: 10</span>
+          <span>⭐ Points earned: 45</span>
+        </div>
+      </div>
+    
+      <div class="history-entry">
+        <div class="entry-date">2025-06-01</div>
+        <div class="entry-details">
+          <span>✔ Completed: 10</span>
+          <span>⭐ Points earned: 45</span>
+        </div>
+      </div>
+    
+      <div class="history-entry">
+        <div class="entry-date">2025-06-01</div>
+        <div class="entry-details">
+          <span>✔ Completed: 10</span>
+          <span>⭐ Points earned: 45</span>
+        </div>
+      </div>
+    
+      <div class="history-entry">
+        <div class="entry-date">2025-06-01</div>
+        <div class="entry-details">
+          <span>✔ Completed: 10</span>
+          <span>⭐ Points earned: 45</span>
+        </div>
+      </div>
+    
+      <div class="history-entry">
+        <div class="entry-date">2025-06-01</div>
+        <div class="entry-details">
+          <span>✔ Completed: 10</span>
+          <span>⭐ Points earned: 45</span>
+        </div>
+      </div>
+</div>
+</body>
+</html>
