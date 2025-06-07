@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Your Achievement</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding: 0 20px;
+        }
+
+        .nav {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav a {
+            color: #8B4513;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav a:hover, .nav a.active {
+            color: #D2691E;
+        }
+
+        .profile-icon {
+            width: 40px;
+            height: 40px;
+            background: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .profile-icon:hover {
+            transform: scale(1.05);
+        }
+
+        .main-content {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .title {
+            color: #D2691E;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 40px;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
+        .form-container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #8B4513;
+            font-weight: 500;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #f0f0f0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #fff;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #fcb69f;
+            box-shadow: 0 0 0 3px rgba(252, 182, 159, 0.2);
+        }
+
+        .form-group textarea {
+            height: 100px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .create-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #fcb69f 0%, #ffecd2 100%);
+            color: #8B4513;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .create-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(252, 182, 159, 0.4);
+        }
+
+        .create-btn:active {
+            transform: translateY(0);
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .nav {
+                gap: 20px;
+            }
+
+            .main-content {
+                padding: 30px 20px;
+            }
+
+            .title {
+                font-size: 24px;
+            }
+
+            .form-row {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <nav class="nav">
+                <a href="#" onclick="showMessage('Home')">Home</a>
+                <a href="#" onclick="showMessage('History')">History</a>
+                <a href="#" class="active">Create</a>
+            </nav>
+            <div class="profile-icon" onclick="showMessage('Profile')">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B4513" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                </svg>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <h1 class="title">CREATE YOUR OWN ACHIEVEMENT</h1>
+            
+            <form class="form-container" onsubmit="createAchievement(event)">
+                <div class="form-group">
+                    <label for="title">Title</label>
+                    <input type="text" id="title" name="title" placeholder="Enter achievement title" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" placeholder="Describe your achievement" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <input type="text" id="category" name="category" placeholder="e.g., Personal, Professional, Academic" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="duration">Duration</label>
+                        <select id="duration" name="duration" required>
+                            <option value="">Select duration</option>
+                            <option value="1-day">1 Day</option>
+                            <option value="1-week">1 Week</option>
+                            <option value="1-month">1 Month</option>
+                            <option value="3-months">3 Months</option>
+                            <option value="6-months">6 Months</option>
+                            <option value="1-year">1 Year</option>
+                            <option value="ongoing">Ongoing</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="points">Points</label>
+                        <input type="number" id="points" name="points" placeholder="100" min="1" max="1000" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="create-btn">Create</button>
+            </form>
+        </main>
+    </div>
+
+    <script>
+        function showMessage(section) {
+            alert(`Navigating to ${section} section`);
+        }
+
+        async function createAchievement(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            
+            // Disable submit button during submission
+            const submitBtn = event.target.querySelector('.create-btn');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Creating...';
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch('/api/v1/auth/create-achievement', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    // Show success message
+                    alert(`✅ ${result.message}`);
+                    
+                    // Reset form
+                    event.target.reset();
+                    
+                    // Reset input borders
+                    document.querySelectorAll('input, textarea, select').forEach(element => {
+                        element.style.borderColor = '#f0f0f0';
+                    });
+                } else {
+                    // Show error message
+                    alert(`❌ Error: ${result.detail || 'Failed to create achievement'}`);
+                }
+            } catch (error) {
+                console.error('Error creating achievement:', error);
+                alert('❌ Network error. Please check your connection and try again.');
+            } finally {
+                // Re-enable submit button
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
+        }
+
+        // Add some interactive feedback
+        document.querySelectorAll('input, textarea, select').forEach(element => {
+            element.addEventListener('input', function() {
+                if (this.value.trim()) {
+                    this.style.borderColor = '#4CAF50';
+                } else {
+                    this.style.borderColor = '#f0f0f0';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

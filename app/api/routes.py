@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Form
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from typing import List
@@ -138,6 +138,62 @@ def login_page(request: Request):
     """Return achievements.html page"""
     return templates.TemplateResponse("achievements.html", {"request": request})
 
+@router.get("/auth/create", response_class=HTMLResponse)
+def create_page(request: Request):
+    """Return create.html page"""
+    return templates.TemplateResponse("create.html", {"request": request})
+
+@router.post("/auth/create-achievement")
+def create_achievement(
+    title: str = Form(...),
+    description: str = Form(...), 
+    category: str = Form(...),
+    duration: str = Form(...),
+    points: int = Form(...),
+    db: Session = Depends(get_db)
+):
+    """Create a new achievement via form submission"""
+    from app.models.achievements import Achievement
+    
+    try:
+        # Convert duration to integer (minutes) based on selection
+        duration_mapping = {
+            "1-day": 1440,      # 24 hours
+            "1-week": 10080,    # 7 days  
+            "1-month": 43200,   # 30 days
+            "3-months": 129600, # 90 days
+            "6-months": 259200, # 180 days
+            "1-year": 525600,   # 365 days
+            "ongoing": 0        # Ongoing
+        }
+        
+        duration_minutes = duration_mapping.get(duration, 0)
+        
+        # Create new achievement
+        new_achievement = Achievement(
+            title=title,
+            description=description,
+            frequency=category,  # Using category as frequency
+            duration=duration_minutes,
+            points_value=points,
+            point_value=points  # Backward compatibility
+        )
+        
+        db.add(new_achievement)
+        db.commit()
+        db.refresh(new_achievement)
+        
+        return {
+            "success": True,
+            "message": f"Achievement '{title}' created successfully!",
+            "achievement_id": new_achievement.id
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Error creating achievement: {str(e)}"
+        )
 
 @router.post("/users/", response_model=User)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):

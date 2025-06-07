@@ -50,6 +50,11 @@ def read_root():
         "redoc": "/redoc"
     }
 
+@app.get("/create")
+def redirect_to_create():
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/api/v1/auth/create")
+
 @app.get("/health")
 def health_check():
     return {"status": "healthy"}
