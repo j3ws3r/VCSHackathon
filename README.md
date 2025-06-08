@@ -1,4 +1,10 @@
 
+Proposal documents
+https://docs.google.com/document/d/1M1TdM-uehMF41yfZRSFej1kUITrkoImalJAOZ8JQI_o/edit?usp=sharing
+
+Figma
+https://www.figma.com/design/jgFIJkJOcKnenZE91Ph0JV/Antra-%C4%8Dakra?node-id=0-1&p=f
+
 Installation
 
 Clone the repository:
